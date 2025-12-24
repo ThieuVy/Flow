@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity, StatusBar, TextInput,
-    Dimensions, KeyboardAvoidingView, Platform, ScrollView
+    Dimensions, KeyboardAvoidingView, Platform, ScrollView, Alert
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, { Path, Circle, Defs, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
@@ -9,6 +9,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
 import { useAppStore } from '../../store/appStore';
 import { COLORS } from '../../utils/theme';
+import { signInWithEmail } from '../../api/firebaseAuth';
 
 type Props = { navigation: NativeStackNavigationProp<RootStackParamList, 'Login'> };
 const { width, height } = Dimensions.get('window');
@@ -42,9 +43,28 @@ const LoginScreen = ({ navigation }: Props) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isChecked, setIsChecked] = useState(false);
-    const completeOnboarding = useAppStore((state) => state.completeOnboarding);
+    // const completeOnboarding = useAppStore((state) => state.completeOnboarding);
 
-    const handleLogin = () => { completeOnboarding(); };
+    const handleLogin = async () => {
+        if (!email || !password) {
+            Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ email và mật khẩu');
+            return;
+        }
+
+        try {
+            await signInWithEmail(email.trim(), password);
+        } catch (error: any) {
+            let message = error.message;
+            // Bắt lỗi cụ thể của Firebase để hiển thị tiếng Việt
+            if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                message = 'Email hoặc mật khẩu không chính xác.';
+            } else if (error.code === 'auth/invalid-email') {
+                message = 'Định dạng email không hợp lệ.';
+            }
+            
+            Alert.alert('Đăng nhập thất bại', message);
+        }
+    };
 
     return (
         <View style={styles.container}>
@@ -134,7 +154,9 @@ const LoginScreen = ({ navigation }: Props) => {
                             </View>
                             <View style={styles.footerRow}>
                                 <Text style={styles.noAccount}>Chưa có tài khoản? </Text>
-                                <TouchableOpacity><Text style={styles.signUpLink}>Đăng ký ngay</Text></TouchableOpacity>
+                                <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+                                    <Text style={styles.signUpLink}>Đăng ký ngay</Text>
+                                </TouchableOpacity>
                             </View>
                         </View>
 

@@ -6,7 +6,7 @@ import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { RootStackParamList } from '../../types/navigation';
 import { useAppStore } from '../../store/appStore';
 import { COLORS } from '../../utils/theme';
-import Logo from '../../assets/images/logo.jpeg';
+import LogoApp from '../../assets/images/logo.png';
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Splash'>;
@@ -64,9 +64,9 @@ const SplashScreen = ({ navigation }: Props) => {
 
       <Animated.View style={[styles.content, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
         <View style={styles.logoContainer}>
-            <Image source={Logo} style={styles.logo} resizeMode="contain" />
+            <Image source={LogoApp} style={styles.logo} resizeMode="center" />
         </View>
-        <Text style={styles.appName}>PET CONNECT</Text>
+        <Text style={styles.appName}>FLOW</Text>
         <Text style={styles.tagline}>Yêu thương & Gắn kết</Text>
       </Animated.View>
     </View>

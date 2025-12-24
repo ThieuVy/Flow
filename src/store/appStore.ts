@@ -2,35 +2,55 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface AppState {
-  isFirstLaunch: boolean;
-  completeOnboarding: () => void;
-  loginSuccess: () => Promise<void>; // Hàm mới: Gọi khi đăng nhập thành công
-  checkFirstLaunch: () => Promise<void>;
+  user: any | null;
+  isInitializing: boolean;
+  isFirstLaunch: boolean; // 1. Thêm state này
+  setUser: (user: any | null) => void;
   logout: () => Promise<void>;
+  checkFirstLaunch: () => Promise<void>; // 2. Thêm action này
+  completeOnboarding: () => Promise<void>; // 3. Thêm action này
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  isFirstLaunch: true,
-  
-  checkFirstLaunch: async () => {
-    // Kiểm tra xem đã từng đăng nhập thành công chưa (thay vì chỉ kiểm tra đã xem onboarding chưa)
-    const hasLoggedIn = await AsyncStorage.getItem('isLoggedIn');
-    set({ isFirstLaunch: hasLoggedIn !== 'true' });
-  },
-  
-  // Hàm này chỉ chuyển màn hình tạm thời, KHÔNG lưu vào bộ nhớ
-  completeOnboarding: () => {
-    set({ isFirstLaunch: false });
-  },
+  user: null,
+  isInitializing: true,
+  isFirstLaunch: true, // Giá trị mặc định
 
-  // Hàm này mới lưu trạng thái để lần sau không hiện Onboarding nữa
-  loginSuccess: async () => {
-    await AsyncStorage.setItem('isLoggedIn', 'true');
-    set({ isFirstLaunch: false });
+  setUser: (user) => {
+    set({ user, isInitializing: false });
+    if (user) {
+      AsyncStorage.setItem('isLoggedIn', 'true');
+    } else {
+      AsyncStorage.removeItem('isLoggedIn');
+    }
   },
 
   logout: async () => {
     await AsyncStorage.removeItem('isLoggedIn');
-    set({ isFirstLaunch: true });
-  }
+    set({ user: null });
+  },
+
+  // 4. Logic kiểm tra lần đầu mở app
+  checkFirstLaunch: async () => {
+    try {
+      const alreadyLaunched = await AsyncStorage.getItem('alreadyLaunched');
+      if (alreadyLaunched === null) {
+        set({ isFirstLaunch: true });
+      } else {
+        set({ isFirstLaunch: false });
+      }
+    } catch (error) {
+      set({ isFirstLaunch: true });
+    }
+  },
+
+  // 5. Logic hoàn thành onboarding
+  completeOnboarding: async () => {
+    try {
+      await AsyncStorage.setItem('alreadyLaunched', 'true');
+      set({ isFirstLaunch: false });
+    } catch (error) {
+      console.log('Error saving onboarding status:', error);
+    }
+  },
 }));

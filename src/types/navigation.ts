@@ -1,8 +1,10 @@
 export type RootStackParamList = {
     Splash: undefined;
     Onboarding: undefined;
-    Welcome: undefined; // Mới
+    Welcome: undefined;
     Login: undefined;
     SignUp: undefined;
     Main: undefined;
+    Settings: undefined;
+    EditProfile: undefined;
 };

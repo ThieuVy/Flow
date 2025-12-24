@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity, StatusBar, TextInput,
-    Dimensions, KeyboardAvoidingView, Platform, ScrollView
+    Dimensions, KeyboardAvoidingView, Platform, ScrollView, Alert
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, { Circle, Defs, LinearGradient as SvgLinearGradient, Stop, Path } from 'react-native-svg';
@@ -9,6 +9,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
 import { useAppStore } from '../../store/appStore';
 import { COLORS } from '../../utils/theme';
+import { signUpWithEmail } from '../../api/firebaseAuth';
 
 type Props = { navigation: NativeStackNavigationProp<RootStackParamList, 'SignUp'> };
 const { width, height } = Dimensions.get('window');
@@ -27,11 +28,18 @@ const SignUpScreen = ({ navigation }: Props) => {
     const [confirmPassword, setConfirmPassword] = useState('');
     
     // Mock logic đăng ký
-    const handleSignUp = () => {
-        // Thực hiện validate và API call tại đây
-        console.log("Registering:", name, email);
-        // Sau khi thành công có thể navigate về Login hoặc vào Main
-        navigation.navigate('Login');
+    const handleSignUp = async () => {
+        if (!name || !email || !password || password !== confirmPassword) {
+            Alert.alert('Lỗi', 'Thông tin không hợp lệ');
+            return;
+        }
+
+        try {
+            await signUpWithEmail(email.trim(), password, name);
+            // Firebase tự login → AppNavigator tự chuyển MainTab
+        } catch (error: any) {
+            Alert.alert('Đăng ký thất bại', error.message);
+        }
     };
 
     return (
